@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +40,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional(readOnly = true)
     public CategoryResponse getCategoryById(Long id) {
-        Category category = categoryRepository.findById(id)
+        Category category = categoryRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
         return mapToResponse(category);
     }
@@ -49,9 +48,9 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional(readOnly = true)
     public List<CategoryResponse> getAllCategories() {
-        return categoryRepository.findAll().stream()
+        return categoryRepository.findByActiveTrue().stream()
                 .map(this::mapToResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -59,6 +58,7 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryResponse updateCategory(Long id, UpdateCategoryRequest request) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
+
 
         if (!category.getName().equalsIgnoreCase(request.getName()) &&
                 categoryRepository.existsByNameIgnoreCase(request.getName())) {
@@ -84,6 +84,8 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     private CategoryResponse mapToResponse(Category category) {
+
+
         return CategoryResponse.builder()
                 .id(category.getId())
                 .name(category.getName())
